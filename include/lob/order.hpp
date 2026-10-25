@@ -16,4 +16,9 @@ struct Order {
   Side side;
 };
 
+struct OrderLocation {
+  Price price;
+  Side side;
+};
+
 } // namespace lob
