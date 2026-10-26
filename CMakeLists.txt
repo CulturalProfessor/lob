@@ -14,6 +14,7 @@ option(LOB_SANITIZE "Build with address and UB sanitizers" OFF)
 
 add_executable(lob
   src/main.cpp
+  src/book.cpp
 )
 
 target_include_directories(lob PRIVATE include)
