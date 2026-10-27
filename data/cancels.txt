@@ -1,0 +1,31 @@
+# Exercises cancel. Replay in order; expected final ladder:
+#
+#   ASKS
+#     1028     45     (1 order)
+#     ----
+#     1025    170     (2 orders)
+#     1024     60     (1 order)
+#   BIDS
+#
+# format: A,<id>,<side B|S>,<price>,<qty>   or   C,<id>
+A,1,B,1025,100
+A,2,B,1025,30
+A,3,B,1025,70
+A,4,B,1024,50
+A,5,S,1027,80
+A,6,S,1028,25
+A,7,S,1028,45
+# cancel the middle order of a busy level -> 1025 keeps #1 and #3, total 170
+C,2
+# cancel the only order at a level -> 1024 must disappear entirely
+C,4
+# cancel the only order at the best ask -> 1027 goes, best ask becomes 1028
+C,5
+# an id that never existed -> must return false and change nothing
+C,99
+# an id already cancelled -> must return false and change nothing
+C,2
+# cancel the FRONT of a busy level -> 1028 keeps #7 only, total 45
+C,6
+# re-add at a price that was emptied earlier -> 1024 comes back with 60
+A,8,B,1024,60

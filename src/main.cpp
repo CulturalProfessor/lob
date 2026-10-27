@@ -39,6 +39,11 @@ int main(int argc, char **argv) {
     std::getline(ss, field, ',');
     std::uint64_t order_id = std::stoll(field);
 
+    if (message_type == "C") {
+      book.cancel(order_id);
+      continue;
+    }
+
     std::getline(ss, field, ',');
     lob::Side order_side;
     if (field == "B") {
