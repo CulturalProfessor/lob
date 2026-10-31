@@ -1,0 +1,37 @@
+# Sell-side matching -- the mirror of cross_buy.txt.
+#
+#   START (after orders 1-5)        END (after everything)
+#
+#   Asks                            Asks
+#   1030     40                     1030     40
+#   ------------                    1026     25
+#   1025    130                     1020     70
+#   1024     50                     ------------
+#   1022     60                     (no bids)
+#   Bids                            Bids
+#
+# format: A,<id>,<side B|S>,<price>,<qty>   or   C,<id>
+
+# --- starting book: bids 1025=[100,30] 1024=[50] 1022=[60], ask 1030=40
+A,1,B,1025,100
+A,2,B,1025,30
+A,3,B,1024,50
+A,4,B,1022,60
+A,5,S,1030,40
+
+# incoming smaller than the resting order: #1 drops 100 -> 60, nothing rests
+A,6,S,1025,40
+
+# consumes #1 exactly: popped, but level 1025 survives holding #2
+A,7,S,1025,60
+
+# walks two levels, fully filled: 30 from #2 (erases level 1025),
+# then 30 from #3 which drops 50 -> 20. Nothing rests.
+A,8,S,1024,60
+
+# no cross (best bid 1024 < 1026): the whole 25 rests as an ask
+A,9,S,1026,25
+
+# eats the rest of the bid side: 20 from #3, 60 from #4, then bids_ is
+# empty and the remaining 70 rests as an ask at 1020
+A,10,S,1020,150

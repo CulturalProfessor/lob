@@ -1,5 +1,6 @@
 #include "lob/order.hpp"
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <iterator>
 #include <lob/book.hpp>
@@ -8,13 +9,70 @@
 namespace lob {
 void Book::add(const Order &order) {
 
+  // managing trade
   if (order.side == Side::Buy) {
-    bids_[order.price].push_back(order);
-  } else if (order.side == Side::Sell) {
-    asks_[order.price].push_back(order);
-  }
+    Quantity remaining = order.qty;
 
-  index_[order.id] = OrderLocation{order.price, order.side};
+    while (remaining > 0 && !asks_.empty()) {
+      auto best = asks_.begin();
+      // break if price crosses
+      if (best->first > order.price) {
+        break;
+      }
+      Level &level = best->second;
+      Order &resting = level.front();
+
+      Quantity traded = std::min(remaining, resting.qty);
+      remaining -= traded;
+      resting.qty -= traded;
+
+      if (resting.qty == 0) {
+        index_.erase(resting.id);
+        level.pop_front();
+      }
+
+      if (level.empty()) {
+        asks_.erase(best);
+      }
+    }
+
+    if (remaining > 0) {
+      bids_[order.price].push_back(
+          {order.id, remaining, order.price, order.side});
+      index_[order.id] = OrderLocation{order.price, order.side};
+    }
+  } else if (order.side == Side::Sell) {
+    Quantity remaining = order.qty;
+
+    while (remaining > 0 && !bids_.empty()) {
+      auto best = bids_.begin();
+      // break if price doesn't crosses
+      if (best->first < order.price) {
+        break;
+      }
+      Level &level = best->second;
+      Order &resting = level.front();
+
+      Quantity traded = std::min(remaining, resting.qty);
+      remaining -= traded;
+      resting.qty -= traded;
+
+      if (resting.qty == 0) {
+        index_.erase(resting.id);
+        level.pop_front();
+      }
+
+      if (level.empty()) {
+        bids_.erase(best);
+      }
+    }
+
+    if (remaining > 0) {
+      asks_[order.price].push_back(
+          {order.id, remaining, order.price, order.side});
+      index_[order.id] = OrderLocation{order.price, order.side};
+    }
+  }
 }
 
 bool Book::cancel(OrderId id) {
@@ -62,7 +120,8 @@ void Book::print() const {
     }
     std::cout << it->first << '\t' << sumOfQuantity << '\n';
   }
-  std::cout << "---------------------------------------------------------\n";
+  std::cout << "---------------------------------"
+               "------------------------\n";
 
   for (auto it = bids_.begin(); it != bids_.end(); ++it) {
     sumOfQuantity = 0;

@@ -1,0 +1,42 @@
+# Buy-side matching. Sells only rest here, so this file was valid even before
+# the sell branch had a matching loop.
+#
+#   START (after orders 1-5)        END (after everything)
+#
+#   Asks                            Asks
+#   1029     40                     1032     15
+#   1028     25                     ------------
+#   1027     95                     1030     60
+#   ------------                    1028      5
+#   1024     50                     1026     60
+#   Bids                            1024     50
+#                                   Bids
+#
+# format: A,<id>,<side B|S>,<price>,<qty>   or   C,<id>
+
+# --- starting book: asks 1027=[75,20] 1028=[25] 1029=[40], bid 1024=50
+A,1,S,1027,75
+A,2,S,1027,20
+A,3,S,1028,25
+A,4,S,1029,40
+A,5,B,1024,50
+
+# incoming smaller than the resting order: #1 drops 75 -> 45, nothing rests
+A,6,B,1027,30
+
+# consumes #1 exactly: it is popped, but level 1027 survives holding #2
+A,7,B,1027,45
+
+# walks two levels and rests the leftover:
+#   20 from #2 (empties and erases level 1027), 25 from #3 (erases 1028),
+#   1029 does not cross 1028, so the last 5 rests as a bid at 1028
+A,8,B,1028,50
+
+# no cross at all (best ask 1029 > 1026): the whole 60 rests
+A,9,B,1026,60
+
+# eats the entire ask side: 40 from #4, then asks_ is empty, 60 rests at 1030
+A,10,B,1030,100
+
+# one more resting sell so the ladder has both sides
+A,11,S,1032,15
