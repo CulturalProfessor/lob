@@ -1,13 +1,17 @@
 #include "lob/order.hpp"
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <iostream>
 #include <iterator>
 #include <lob/book.hpp>
 #include <ostream>
+#include <vector>
 
 namespace lob {
-void Book::add(const Order &order) {
+void Book::add(const Order &order, std::vector<Trade> &out) {
+
+  Time createdAt = std::chrono::steady_clock::now();
 
   // managing trade
   if (order.side == Side::Buy) {
@@ -15,7 +19,6 @@ void Book::add(const Order &order) {
 
     while (remaining > 0 && !asks_.empty()) {
       auto best = asks_.begin();
-      // break if price crosses
       if (best->first > order.price) {
         break;
       }
@@ -25,6 +28,10 @@ void Book::add(const Order &order) {
       Quantity traded = std::min(remaining, resting.qty);
       remaining -= traded;
       resting.qty -= traded;
+
+      out.push_back({next_trade_id_, traded, order.side, best->first, createdAt,
+                     order.id, resting.id});
+      next_trade_id_ += 1;
 
       if (resting.qty == 0) {
         index_.erase(resting.id);
@@ -41,12 +48,12 @@ void Book::add(const Order &order) {
           {order.id, remaining, order.price, order.side});
       index_[order.id] = OrderLocation{order.price, order.side};
     }
+
   } else if (order.side == Side::Sell) {
     Quantity remaining = order.qty;
 
     while (remaining > 0 && !bids_.empty()) {
       auto best = bids_.begin();
-      // break if price doesn't crosses
       if (best->first < order.price) {
         break;
       }
@@ -56,6 +63,10 @@ void Book::add(const Order &order) {
       Quantity traded = std::min(remaining, resting.qty);
       remaining -= traded;
       resting.qty -= traded;
+
+      out.push_back({next_trade_id_, traded, order.side, best->first, createdAt,
+                     resting.id, order.id});
+      next_trade_id_ += 1;
 
       if (resting.qty == 0) {
         index_.erase(resting.id);
