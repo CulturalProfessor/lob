@@ -16,6 +16,9 @@ public:
   bool cancel(OrderId id);
   void print() const;
 
+  Book() {}
+  Book(std::uint64_t indexSize) { index_.reserve(indexSize); }
+
 private:
   using Level = std::deque<Order>;
   std::map<Price, Level, std::greater<Price>> bids_;
