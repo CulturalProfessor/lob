@@ -1,7 +1,6 @@
 #include "lob/order.hpp"
 #include <algorithm>
 #include <chrono>
-#include <cstdint>
 #include <iostream>
 #include <iterator>
 #include <lob/book.hpp>
@@ -120,7 +119,7 @@ bool Book::cancel(OrderId id) {
 }
 
 void Book::print() const {
-  std::int64_t sumOfQuantity = 0;
+  lob::Quantity sumOfQuantity = 0;
   std::cout << '\n' << '\t' << "Asks (sellers)\n";
   std::cout << "Price" << '\t' << "Quantity" << '\n';
 

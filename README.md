@@ -13,8 +13,8 @@ Trades execute at the resting order's price, not the incoming order's limit.
 
 ## Status
 
-Done: add, cancel, matching on both sides, trade reporting, file replay, and a
-latency harness with percentiles.
+Done: add, cancel, matching on both sides, trade reporting, file replay, a
+test covering those paths, and a latency harness with percentiles.
 
 Not done: a real market data feed, and the allocation-free rewrite that the
 benchmarks argue for.
@@ -51,6 +51,16 @@ Message format:
     C,<id>
 
 Prices are integer ticks. Lines starting with `#` are comments.
+
+## Tests
+
+    g++ -std=c++20 -O2 -Iinclude src/book.cpp tests/book_test.cpp -o /tmp/book_test
+    /tmp/book_test
+
+Checks matching against a known order sequence (trade count, and quantity
+conserved across all fills), and the cancel paths: removing the middle of a
+level, removing the last order at a price, an unknown id, and a repeated
+cancel. Exits non-zero on failure.
 
 ## Sanitizers
 
